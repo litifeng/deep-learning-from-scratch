@@ -94,41 +94,46 @@ def _change_one_hot_label(X):
 
 
 def load_mnist(normalize=True, flatten=True, one_hot_label=False):
-    """MNISTデータセットの読み込み
+    """加载MNIST数据集
 
-    Parameters
+    参数:
     ----------
-    normalize : 画像のピクセル値を0.0~1.0に正規化する
+    normalize : 是否将图像像素值归一化到0.0~1.0之间
     one_hot_label :
-        one_hot_labelがTrueの場合、ラベルはone-hot配列として返す
-        one-hot配列とは、たとえば[0,0,1,0,0,0,0,0,0,0]のような配列
-    flatten : 画像を一次元配列に平にするかどうか
+        如果one_hot_label为True，则返回one-hot形式的标签
+        one-hot形式的数组，例如[0,0,1,0,0,0,0,0,0,0]
+    flatten : 是否将图像展平为一维数组
 
-    Returns
+    返回:
     -------
-    (訓練画像, 訓練ラベル), (テスト画像, テストラベル)
+    (训练图像, 训练标签), (测试图像, 测试标签)
     """
+    # 如果缓存文件不存在，则初始化MNIST数据集
     if not os.path.exists(save_file):
         init_mnist()
 
+    # 从pickle文件中加载数据集
     with open(save_file, 'rb') as f:
         dataset = pickle.load(f)
 
+    # 对图像数据进行归一化处理
     if normalize:
         for key in ('train_img', 'test_img'):
             dataset[key] = dataset[key].astype(np.float32)
             dataset[key] /= 255.0
 
+    # 将标签转换为one-hot形式
     if one_hot_label:
         dataset['train_label'] = _change_one_hot_label(dataset['train_label'])
         dataset['test_label'] = _change_one_hot_label(dataset['test_label'])
 
+    # 如果不展平图像数据，则重塑为(样本数, 通道数, 高度, 宽度)的形式
     if not flatten:
-         for key in ('train_img', 'test_img'):
+        for key in ('train_img', 'test_img'):
             dataset[key] = dataset[key].reshape(-1, 1, 28, 28)
 
+    # 返回处理后的训练集和测试集
     return (dataset['train_img'], dataset['train_label']), (dataset['test_img'], dataset['test_label'])
-
 
 if __name__ == '__main__':
     init_mnist()
